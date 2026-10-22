@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Property Weather Station</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="text-slate-100 font-sans antialiased p-4 md:p-8">
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 pb-4 border-b border-slate-700/60">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span id="status-dot" class="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">Property Weather Station</h1>
+        </div>
+        <p id="last-updated" class="text-sm text-slate-400 mt-1">Connecting to live station feed...</p>
+      </div>
+      <button onclick="fetchWeather()" class="self-start sm:self-auto px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Refresh Now
+      </button>
+    </header>
+
+    <!-- Primary Outdoor Hero Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <!-- Outdoor Temp Card -->
+      <div class="glass-card rounded-2xl p-6 shadow-lg flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Outdoor Temperature</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="outdoor_temp" class="text-5xl font-extrabold text-white">--</span>
+            <span class="text-2xl font-semibold text-slate-400">°F</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">Exterior Sensor Array</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-amber-500/10 text-amber-400">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Outdoor Humidity Card -->
+      <div class="glass-card rounded-2xl p-6 shadow-lg flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-sky-400">Outdoor Humidity</span>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="outdoor_humidity" class="text-5xl font-extrabold text-white">--</span>
+            <span class="text-2xl font-semibold text-slate-400">%</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">Relative Humidity</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-sky-500/10 text-sky-400">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary 6-Tile Metrics Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <!-- Barometric Pressure -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-emerald-400">Barometer</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="baro" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">inHg</span>
+        </div>
+      </div>
+
+      <!-- Wind Gust -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-teal-400">Wind Gust</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="wind_gust" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">mph</span>
+        </div>
+      </div>
+
+      <!-- Wind Average -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-teal-400">Wind Average</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="wind_avg" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">mph</span>
+        </div>
+      </div>
+
+      <!-- Rainfall 1h -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-indigo-400">Rainfall (1h)</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="rain_1h" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">mm</span>
+        </div>
+      </div>
+
+      <!-- Indoor Temp -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-rose-400">Indoor Temp</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="indoor_temp" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">°F</span>
+        </div>
+      </div>
+
+      <!-- Indoor Humidity -->
+      <div class="glass-card rounded-2xl p-5 shadow">
+        <span class="text-xs font-medium uppercase tracking-wider text-purple-400">Indoor Humidity</span>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="indoor_humidity" class="text-3xl font-bold text-white">--</span>
+          <span class="text-sm text-slate-400">%</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-8 text-center text-xs text-slate-500">
+      Auto-updates every 60 seconds • Powered by Sainlogic OCR &amp; Home Assistant
+    </footer>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycby0hC5wFB-bqRFwadbgsMia_EqT73Kfo9UboTDmNWZbEu9uP89chRv0AU0iRyYqi_Ff/exec";
+
+    async function fetchWeather() {
+      const statusDot = document.getElementById("status-dot");
+      const updatedText = document.getElementById("last-updated");
+      try {
+        const response = await fetch(API_URL, { cache: "no-store" });
+        const data = await response.json();
+
+        const fields = [
+          "outdoor_temp",
+          "outdoor_humidity",
+          "indoor_temp",
+          "indoor_humidity",
+          "baro",
+          "wind_gust",
+          "wind_avg",
+          "rain_1h"
+        ];
+
+        fields.forEach((key) => {
+          const el = document.getElementById(key);
+          if (el && data[key] !== undefined && data[key] !== "") {
+            el.textContent = data[key];
+          }
+        });
+
+        const ts = data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleTimeString();
+        updatedText.textContent = `Last station reading: ${ts}`;
+        statusDot.className = "h-3 w-3 rounded-full bg-emerald-400 animate-pulse";
+      } catch (err) {
+        console.error("Failed to load weather data:", err);
+        updatedText.textContent = "Reconnecting to weather feed...";
+        statusDot.className = "h-3 w-3 rounded-full bg-amber-400";
+      }
+    }
+
+    fetchWeather();
+    setInterval(fetchWeather, 60000);
+  </script>
+</body>
+</html>
